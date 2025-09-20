@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🔐</text></svg>">
+</head>
+<body>
+    <div id="mainContainer" class="options-container">
+        <h1>🔐 Password Manager</h1>
+        <div class="options-grid">
+            <div class="option" id="option1" onclick="navigateTo('generate')">
+                <span class="option-icon">🔑</span>
+                <span class="option-text">Generate Password</span>
+            </div>
+            <div class="option" id="option2" onclick="navigateTo('save')">
+                <span class="option-icon">💾</span>
+                <span class="option-text">Save Password</span>
+            </div>
+            <div class="option" id="option3" onclick="navigateTo('changeMasterPassword')">
+                <span class="option-icon">🔧</span>
+                <span class="option-text">Change Master Password</span>
+            </div>
+            <div class="option" id="option4" onclick="navigateTo('settings')">
+                <span class="option-icon">⚙️</span>
+                <span class="option-text">Settings</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="generateContainer" class="container" style="display: none;">
+        <h1>🔑 Generate Password</h1>
+        <div class="form-group">
+            <label for="passwordLength">Password Length:</label>
+            <input type="range" id="passwordLength" min="4" max="50" value="12" oninput="updateLengthDisplay()">
+            <span id="lengthDisplay">12</span>
+        </div>
+        
+        <div class="checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="includeUppercase" checked>
+                Uppercase Letters (A-Z)
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="includeLowercase" checked>
+                Lowercase Letters (a-z)
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="includeNumbers" checked>
+                Numbers (0-9)
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="includeSymbols" checked>
+                Symbols (!@#$%^&*)
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="excludeSimilar">
+                Exclude Similar Characters (0,O,l,1,I)
+            </label>
+        </div>
+
+        <button onclick="handleGeneratePassword()" class="generate-btn">Generate Password</button>
+        <div id="passwordDisplay" class="passwordDisplay">Your password will appear here</div>
+        <div class="password-strength" id="passwordStrength"></div>
+        
+        <div class="action-buttons">
+            <button onclick="copyPassword()" class="copy-btn">📋 Copy</button>
+            <button onclick="saveGeneratedPassword()" class="save-btn">💾 Save</button>
+            <button onclick="navigateTo('main')" class="back-btn">← Back</button>
+        </div>
+    </div>
+
+    <div id="saveContainer" class="container" style="display: none;">
+        <h1>💾 Save Password</h1>
+        <form id="passwordForm">
+            <div class="form-group">
+                <label for="website">Website/Service:</label>
+                <input type="text" id="website" required placeholder="e.g., gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="username">Username/Email:</label>
+                <input type="text" id="username" required placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="password" required>
+                    <button type="button" onclick="togglePasswordVisibility('password')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes (Optional):</label>
+                <textarea id="notes" placeholder="Additional notes..."></textarea>
+            </div>
+            <button type="submit" class="save-btn">Save Password</button>
+        </form>
+        
+        <div class="search-section">
+            <input type="text" id="searchPasswords" placeholder="Search passwords..." oninput="searchPasswords()">
+            <button id="listPasswordsButton" onclick="promptForMasterPassword()">📋 View Saved Passwords</button>
+        </div>
+        
+        <div id="passwordList"></div>
+        <button onclick="navigateTo('main')" class="back-btn">← Back</button>
+    </div>
+
+    <div id="changeMasterPasswordContainer" class="container" style="display: none;">
+        <h1>🔧 Change Master Password</h1>
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label for="currentMasterPassword">Current Master Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="currentMasterPassword" required>
+                    <button type="button" onclick="togglePasswordVisibility('currentMasterPassword')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="newMasterPassword">New Master Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="newMasterPassword" required>
+                    <button type="button" onclick="togglePasswordVisibility('newMasterPassword')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmMasterPassword">Confirm New Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="confirmMasterPassword" required>
+                    <button type="button" onclick="togglePasswordVisibility('confirmMasterPassword')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="save-btn">Change Password</button>
+        </form>
+        <button onclick="navigateTo('main')" class="back-btn">← Back</button>
+    </div>
+
+    <div id="settingsContainer" class="container" style="display: none;">
+        <h1>⚙️ Settings</h1>
+        <div class="settings-grid">
+            <div class="setting-item">
+                <label for="autoLock">Auto-lock after (minutes):</label>
+                <select id="autoLock">
+                    <option value="5">5 minutes</option>
+                    <option value="10" selected>10 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="theme">Theme:</label>
+                <select id="theme" onchange="changeTheme()">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <button onclick="exportPasswords()" class="export-btn">📤 Export Passwords</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importPasswords()">
+                <button onclick="document.getElementById('importFile').click()" class="import-btn">📥 Import Passwords</button>
+            </div>
+            <div class="setting-item">
+                <button onclick="clearAllData()" class="danger-btn">🗑️ Clear All Data</button>
+            </div>
+        </div>
+        <button onclick="navigateTo('main')" class="back-btn">← Back</button>
+    </div>
+
+    <div id="lockNoticeContainer" class="container" style="display: none;">
+        <h1>🔒 Account Locked</h1>
+        <div class="lock-notice">Your account is locked due to multiple incorrect master password attempts.</div>
+        <div class="countdown">Time remaining: <span id="countdownTimer"></span></div>
+    </div>
+
+    <div id="setupContainer" class="container" style="display: none;">
+        <h1>🔐 Setup Master Password</h1>
+        <p>Welcome! Please create a master password to secure your password manager.</p>
+        <form id="setupForm">
+            <div class="form-group">
+                <label for="setupMasterPassword">Master Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="setupMasterPassword" required>
+                    <button type="button" onclick="togglePasswordVisibility('setupMasterPassword')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmSetupPassword">Confirm Password:</label>
+                <div class="password-input-group">
+                    <input type="password" id="confirmSetupPassword" required>
+                    <button type="button" onclick="togglePasswordVisibility('confirmSetupPassword')" class="toggle-btn">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="save-btn">Create Master Password</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
